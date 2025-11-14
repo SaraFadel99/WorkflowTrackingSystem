@@ -9,5 +9,6 @@
         public string NextStep { get; set; }
         //forignKey
         public int WorkflowId { get; set; }
+       // public Workflow Workflow { get; set; }
     }
 }
