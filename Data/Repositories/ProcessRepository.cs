@@ -19,14 +19,14 @@ namespace WorkflowTrackingSystem.Data.Repositories
             return process;
         }
 
-        public async Task<Process?> GetByIdAsync(int id)
+        public async Task<Process> GetByIdAsync(int id)
         {
             return await _context.Processes
                 //.Include(p => p.StepExecutions)
                 .FirstOrDefaultAsync(p => p.Id == id);
         }
 
-        public async Task<Process?> GetByIdWithWorkflowAsync(int id)
+        public async Task<Process> GetByIdWithWorkflowAsync(int id)
         {
             return await _context.Processes
                 //.Include(p => p.StepExecutions)
@@ -80,12 +80,12 @@ namespace WorkflowTrackingSystem.Data.Repositories
                 .ToListAsync();
         }
 
-        //public async Task<ProcessStepExecution> AddStepExecutionAsync(ProcessStepExecution stepExecution)
-        //{
-        //    _context.ProcessStepExecutions.Add(stepExecution);
-        //    await _context.SaveChangesAsync();
-        //    return stepExecution;
-        //}
+        public async Task<ProcessStepExecution> AddStepExecutionAsync(ProcessStepExecution stepExecution)
+        {
+            _context.ProcessStepExecutions.Add(stepExecution);
+            await _context.SaveChangesAsync();
+            return stepExecution;
+        }
     }
 }
 

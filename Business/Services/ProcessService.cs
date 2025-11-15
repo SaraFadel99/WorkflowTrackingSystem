@@ -18,7 +18,7 @@ namespace WorkflowTrackingSystem.Business.Services
         public async Task<StartProcessResponse> StartProcessAsync(StartProcessRequest request)
         {
             // Validate workflow exists
-            var workflow = await _workflowRepository.GetByIdAsync(request.WorkflowId);
+            Workflow workflow = await _workflowRepository.GetByIdAsync(request.WorkflowId);
             if (workflow == null)
             {
                 throw new ArgumentException($"Workflow with ID {request.WorkflowId} not found.");
@@ -30,24 +30,26 @@ namespace WorkflowTrackingSystem.Business.Services
             }
 
             // Get the first step (assuming steps are ordered, or we take the first one)
-            var firstStep = workflow.Steps.OrderBy(s => s.Id).FirstOrDefault();
+            var orderedSteps = workflow.Steps.OrderBy(s => s.Id);
+            WorkflowStep firstStep = orderedSteps.FirstOrDefault();
             if (firstStep == null)
             {
                 throw new InvalidOperationException("Cannot determine the first step of the workflow.");
             }
 
             // Create process
-            var process = new Process
+            Process process = new Process
             {
                 WorkflowId = request.WorkflowId,
                 Initiator = request.Initiator,
                 Status = "InProgress",
                 CurrentStep = firstStep.StepName,
+                 NextStep = firstStep.NextStep,
                 CreatedDate = DateTime.UtcNow,
-             //   StepExecutions = new List<ProcessStepExecution>()
+                StepExecutions = new List<ProcessStepExecution>()
             };
 
-            var createdProcess = await _processRepository.CreateAsync(process);
+            Process createdProcess = await _processRepository.CreateAsync(process);
 
             // Map to response
             return new StartProcessResponse
@@ -58,6 +60,7 @@ namespace WorkflowTrackingSystem.Business.Services
                 Initiator = createdProcess.Initiator,
                 Status = createdProcess.Status,
                 CurrentStep = createdProcess.CurrentStep,
+                NextStep = createdProcess.NextStep,
                 CreatedDate = createdProcess.CreatedDate
             };
         }
@@ -65,14 +68,14 @@ namespace WorkflowTrackingSystem.Business.Services
         public async Task<ExecuteStepResponse> ExecuteStepAsync(ExecuteStepRequest request)
         {
             // Get process with workflow information
-            var process = await _processRepository.GetByIdAsync(request.ProcessId);
+            Process process = await _processRepository.GetByIdAsync(request.ProcessId);
             if (process == null)
             {
                 throw new ArgumentException($"Process with ID {request.ProcessId} not found.");
             }
 
             // Get workflow to validate step
-            var workflow = await _workflowRepository.GetByIdAsync(process.WorkflowId);
+            Workflow workflow = await _workflowRepository.GetByIdAsync(process.WorkflowId);
             if (workflow == null)
             {
                 throw new InvalidOperationException($"Workflow for process {request.ProcessId} not found.");
@@ -86,21 +89,13 @@ namespace WorkflowTrackingSystem.Business.Services
             }
 
             // Find the workflow step
-            var workflowStep = workflow.Steps?.FirstOrDefault(s => s.StepName == request.StepName);
+            WorkflowStep workflowStep = workflow.Steps?.FirstOrDefault(s => s.StepName == request.StepName);
             if (workflowStep == null)
             {
                 throw new ArgumentException($"Step '{request.StepName}' not found in workflow.");
             }
 
-            // Validate user has permission (check if performed_by matches assigned_to role)
-            // Note: This is a simple check - you might want more sophisticated role-based validation
-            if (!string.IsNullOrEmpty(workflowStep.AssignedTo) && 
-                !request.PerformedBy.Equals(workflowStep.AssignedTo, StringComparison.OrdinalIgnoreCase))
-            {
-                // Allow if it's a role match (e.g., "manager" role)
-                // For now, we'll allow it but you can add stricter validation
-            }
-
+            //ToDo change this to enum and validate in a better way for the status too
             // Validate action type
             if (workflowStep.ActionType == "approve_reject" && 
                 !new[] { "approve", "reject" }.Contains(request.Action.ToLower()))
@@ -110,20 +105,20 @@ namespace WorkflowTrackingSystem.Business.Services
             }
 
             // Create step execution record
-            //var stepExecution = new ProcessStepExecution
-            //{
-            //    ProcessId = process.Id,
-            //    StepName = request.StepName,
-            //    PerformedBy = request.PerformedBy,
-            //    Action = request.Action,
-            //    Status = "Completed",
-            //    ExecutedDate = DateTime.UtcNow
-            //};
+            ProcessStepExecution stepExecution = new ProcessStepExecution
+            {
+                ProcessId = process.Id,
+                StepName = request.StepName,
+                PerformedBy = request.PerformedBy,
+                Action = request.Action,
+                Status = "Completed",
+                ExecutedDate = DateTime.UtcNow
+            };
 
-            //await _processRepository.AddStepExecutionAsync(stepExecution);
+            await _processRepository.AddStepExecutionAsync(stepExecution);
 
             // Determine next step
-            string? nextStep = null;
+            string nextStep = null;
             string processStatus = "InProgress";
 
             if (request.Action.ToLower() == "reject")

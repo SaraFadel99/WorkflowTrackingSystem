@@ -1,15 +1,34 @@
+using System.Text.Json.Serialization;
+
 namespace WorkflowTrackingSystem.Business.Models.DTOs
 {
     public class ProcessListResponse
     {
+        [JsonPropertyName("process_id")]
         public int ProcessId { get; set; }
+
+        [JsonPropertyName("workflow_id")]
         public int WorkflowId { get; set; }
+
+        [JsonPropertyName("workflow_name")]
         public string WorkflowName { get; set; }
+
+        [JsonPropertyName("initiator")]
         public string Initiator { get; set; }
+
+        [JsonPropertyName("status")]
         public string Status { get; set; }
+
+        [JsonPropertyName("current_step")]
         public string CurrentStep { get; set; }
-        public string? AssignedTo { get; set; } // Who is assigned to the current step
+
+        [JsonPropertyName("assigned_to")]
+        public string? AssignedTo { get; set; }
+
+        [JsonPropertyName("created_date")]
         public DateTime CreatedDate { get; set; }
+
+        [JsonPropertyName("completed_date")]
         public DateTime? CompletedDate { get; set; }
     }
 }

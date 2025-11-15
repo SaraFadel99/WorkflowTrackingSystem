@@ -13,7 +13,7 @@ namespace WorkflowTrackingSystem.Data
         public DbSet<Workflow> Workflows { get; set; }
         public DbSet<WorkflowStep> WorkflowSteps { get; set; }
         public DbSet<Process> Processes { get; set; }
-      //  public DbSet<ProcessStepExecution> ProcessStepExecutions { get; set; }
+        public DbSet<ProcessStepExecution> ProcessStepExecutions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -50,7 +50,7 @@ namespace WorkflowTrackingSystem.Data
                 entity.Property(e => e.WorkflowId).IsRequired();
                 entity.Property(e => e.Initiator).IsRequired().HasMaxLength(100);
                 entity.Property(e => e.Status).IsRequired().HasMaxLength(50);
-                entity.Property(e => e.CurrentStep).HasMaxLength(200);
+                entity.Property(e => e.CurrentStep).HasMaxLength(50);
                 entity.Property(e => e.CreatedDate).IsRequired();
 
                 // Configure relationship to Workflow
@@ -60,24 +60,23 @@ namespace WorkflowTrackingSystem.Data
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
-            //// Configure ProcessStepExecution entity
-            //modelBuilder.Entity<ProcessStepExecution>(entity =>
-            //{
-            //    entity.HasKey(e => e.Id);
-            //    entity.Property(e => e.ProcessId).IsRequired();
-            //    entity.Property(e => e.StepName).IsRequired().HasMaxLength(200);
-            //    entity.Property(e => e.PerformedBy).IsRequired().HasMaxLength(100);
-            //    entity.Property(e => e.Action).IsRequired().HasMaxLength(50);
-            //    entity.Property(e => e.Status).IsRequired().HasMaxLength(50);
-            //    entity.Property(e => e.ExecutedDate).IsRequired();
-            //    entity.Property(e => e.Comments).HasMaxLength(1000);
+            // Configure ProcessStepExecution entity
+            modelBuilder.Entity<ProcessStepExecution>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.ProcessId).IsRequired();
+                entity.Property(e => e.StepName).IsRequired().HasMaxLength(50);
+                entity.Property(e => e.PerformedBy).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.Action).IsRequired().HasMaxLength(50);
+                entity.Property(e => e.Status).IsRequired().HasMaxLength(50);
+                entity.Property(e => e.ExecutedDate).IsRequired();
 
-            //    // Configure relationship to Process
-            //    entity.HasOne<Process>()
-            //        .WithMany(p => p.StepExecutions)
-            //        .HasForeignKey(pse => pse.ProcessId)
-            //        .OnDelete(DeleteBehavior.Cascade);
-            //});
+                // Configure relationship to Process
+                entity.HasOne<Process>()
+                    .WithMany(p => p.StepExecutions)
+                    .HasForeignKey(pse => pse.ProcessId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
         }
     }
 }

@@ -25,11 +25,8 @@ namespace WorkflowTrackingSystem.Controllers
 
             try
             {
-                var response = await _processService.StartProcessAsync(request);
-                return CreatedAtAction(
-                    nameof(GetProcessById),
-                    new { id = response.ProcessId },
-                    response);
+                StartProcessResponse response = await _processService.StartProcessAsync(request);
+                return Ok(response);
             }
             catch (ArgumentException ex)
             {
