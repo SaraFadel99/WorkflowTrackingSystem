@@ -22,14 +22,14 @@ namespace WorkflowTrackingSystem.Data.Repositories
         public async Task<Process> GetByIdAsync(int id)
         {
             return await _context.Processes
-                //.Include(p => p.StepExecutions)
+                .Include(p => p.StepExecutions)
                 .FirstOrDefaultAsync(p => p.Id == id);
         }
 
         public async Task<Process> GetByIdWithWorkflowAsync(int id)
         {
             return await _context.Processes
-                //.Include(p => p.StepExecutions)
+                .Include(p => p.StepExecutions)
                 .FirstOrDefaultAsync(p => p.Id == id);
         }
 
@@ -62,7 +62,7 @@ namespace WorkflowTrackingSystem.Data.Repositories
                     // Legacy support for old values
                     "inprogress" => "Active",
                     "rejected" => "Completed", // Map rejected to completed
-                    _ => status // Use the provided status as-is if it doesn't match
+                    _ => status 
                 };
                 query = query.Where(p => p.Status == statusFilter);
             }
