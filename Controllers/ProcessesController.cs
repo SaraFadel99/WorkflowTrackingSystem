@@ -72,8 +72,8 @@ namespace WorkflowTrackingSystem.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProcessListResponse>>> GetProcesses(
             [FromQuery] int? workflow_id = null,
-            [FromQuery] string? status = null,
-            [FromQuery] string? assigned_to = null)
+            [FromQuery] string status = null,
+            [FromQuery] string assigned_to = null)
         {
             try
             {
@@ -86,12 +86,7 @@ namespace WorkflowTrackingSystem.Controllers
             }
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult> GetProcessById(int id)
-        {
-            // Placeholder for future implementation
-            return Ok(new { message = "Get process by ID endpoint - to be implemented" });
-        }
+  
     }
 }
 

@@ -6,7 +6,7 @@ namespace WorkflowTrackingSystem.Business.Models.Entities
         public int WorkflowId { get; set; }
         public string Initiator { get; set; }
         public string AssignedTo { get; set; }
-        public string Status { get; set; } // e.g., Active, Completed, Pending
+        public string Status { get; set; }
         public string CurrentStep { get; set; } 
         public string NextStep { get; set; } 
         public DateTime CreatedDate { get; set; }

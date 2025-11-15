@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using WorkflowTrackingSystem.Business.Models.Enums;
 
 namespace WorkflowTrackingSystem.Business.Models.DTOs
 {
@@ -17,11 +18,13 @@ namespace WorkflowTrackingSystem.Business.Models.DTOs
         public string Initiator { get; set; }
 
         [JsonPropertyName("status")]
-        public string Status { get; set; }
+        public ProcessStatus Status { get; set; }
 
         [JsonPropertyName("current_step")]
         public string CurrentStep { get; set; }
-        public string NextStep { get; set; }
+
+        [JsonPropertyName("next_step")]
+        public string? NextStep { get; set; }
 
         [JsonPropertyName("created_date")]
         public DateTime CreatedDate { get; set; }

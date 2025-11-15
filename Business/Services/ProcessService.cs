@@ -1,5 +1,6 @@
 using WorkflowTrackingSystem.Business.Models.DTOs;
 using WorkflowTrackingSystem.Business.Models.Entities;
+using WorkflowTrackingSystem.Business.Models.Enums;
 using WorkflowTrackingSystem.Data.Repositories;
 
 namespace WorkflowTrackingSystem.Business.Services
@@ -42,9 +43,9 @@ namespace WorkflowTrackingSystem.Business.Services
             {
                 WorkflowId = request.WorkflowId,
                 Initiator = request.Initiator,
-                Status = "InProgress",
+                Status = ProcessStatusToString(ProcessStatus.Active), // Start as Active
                 CurrentStep = firstStep.StepName,
-                 NextStep = firstStep.NextStep,
+                NextStep = firstStep.NextStep,
                 CreatedDate = DateTime.UtcNow,
                 StepExecutions = new List<ProcessStepExecution>()
             };
@@ -58,7 +59,7 @@ namespace WorkflowTrackingSystem.Business.Services
                 WorkflowId = createdProcess.WorkflowId,
                 WorkflowName = workflow.Name,
                 Initiator = createdProcess.Initiator,
-                Status = createdProcess.Status,
+                Status = StringToProcessStatus(createdProcess.Status),
                 CurrentStep = createdProcess.CurrentStep,
                 NextStep = createdProcess.NextStep,
                 CreatedDate = createdProcess.CreatedDate
@@ -95,10 +96,9 @@ namespace WorkflowTrackingSystem.Business.Services
                 throw new ArgumentException($"Step '{request.StepName}' not found in workflow.");
             }
 
-            //ToDo change this to enum and validate in a better way for the status too
-            // Validate action type
+            // Validate action type - enum ensures only valid values
             if (workflowStep.ActionType == "approve_reject" && 
-                !new[] { "approve", "reject" }.Contains(request.Action.ToLower()))
+                request.Action != StepAction.approve && request.Action != StepAction.reject)
             {
                 throw new ArgumentException(
                     $"Action '{request.Action}' is not valid for step '{request.StepName}'. Expected 'approve' or 'reject'.");
@@ -110,7 +110,7 @@ namespace WorkflowTrackingSystem.Business.Services
                 ProcessId = process.Id,
                 StepName = request.StepName,
                 PerformedBy = request.PerformedBy,
-                Action = request.Action,
+                Action = StepActionToString(request.Action),
                 Status = "Completed",
                 ExecutedDate = DateTime.UtcNow
             };
@@ -119,12 +119,12 @@ namespace WorkflowTrackingSystem.Business.Services
 
             // Determine next step
             string nextStep = null;
-            string processStatus = "InProgress";
+            ProcessStatus processStatus = ProcessStatus.Active;
 
-            if (request.Action.ToLower() == "reject")
+            if (request.Action == StepAction.reject)
             {
-                // If rejected, process might be cancelled or go to a rejection step
-                processStatus = "Rejected";
+                // If rejected, mark as Completed (terminal state)
+                processStatus = ProcessStatus.Completed;
                 process.CompletedDate = DateTime.UtcNow;
             }
             else if (!string.IsNullOrEmpty(workflowStep.NextStep) && 
@@ -132,16 +132,17 @@ namespace WorkflowTrackingSystem.Business.Services
             {
                 nextStep = workflowStep.NextStep;
                 process.CurrentStep = nextStep;
+                processStatus = ProcessStatus.Active; // Still active, moving to next step
             }
             else
             {
                 // Process completed
-                processStatus = "Completed";
+                processStatus = ProcessStatus.Completed;
                 process.CurrentStep = "Completed";
                 process.CompletedDate = DateTime.UtcNow;
             }
 
-            process.Status = processStatus;
+            process.Status = ProcessStatusToString(processStatus);
             await _processRepository.UpdateAsync(process);
 
             // Map to response
@@ -205,7 +206,7 @@ namespace WorkflowTrackingSystem.Business.Services
                     WorkflowId = process.WorkflowId,
                     WorkflowName = workflow.Name,
                     Initiator = process.Initiator,
-                    Status = process.Status,
+                    Status = StringToProcessStatus(process.Status),
                     CurrentStep = process.CurrentStep,
                     AssignedTo = assignedToValue,
                     CreatedDate = process.CreatedDate,
@@ -214,6 +215,50 @@ namespace WorkflowTrackingSystem.Business.Services
             }
 
             return response;
+        }
+
+        // Helper methods for enum/string conversion
+        private static string ProcessStatusToString(ProcessStatus status)
+        {
+            return status switch
+            {
+                ProcessStatus.Active => "Active",
+                ProcessStatus.Completed => "Completed",
+                ProcessStatus.Pending => "Pending",
+                _ => status.ToString()
+            };
+        }
+
+        private static ProcessStatus StringToProcessStatus(string status)
+        {
+            if (string.IsNullOrEmpty(status))
+                return ProcessStatus.Pending;
+
+            return status.ToLower() switch
+            {
+                "active" or "inprogress" => ProcessStatus.Active,
+                "completed" or "rejected" => ProcessStatus.Completed, // Map Rejected to Completed
+                "pending" => ProcessStatus.Pending,
+                _ => ProcessStatus.Pending // Default to Pending for unknown values
+            };
+        }
+
+        private static string StepActionToString(StepAction action)
+        {
+            return action.ToString().ToLower(); // "approve" or "reject"
+        }
+
+        private static StepAction StringToStepAction(string action)
+        {
+            if (string.IsNullOrEmpty(action))
+                throw new ArgumentException("Action cannot be null or empty.");
+
+            return action.ToLower() switch
+            {
+                "approve" => StepAction.approve,
+                "reject" => StepAction.reject,
+                _ => throw new ArgumentException($"Invalid action value: {action}. Valid values are: approve, reject")
+            };
         }
     }
 }

@@ -1,0 +1,12 @@
+using System.Text.Json.Serialization;
+
+namespace WorkflowTrackingSystem.Business.Models.Enums
+{
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public enum StepAction
+    {
+        approve,
+        reject
+    }
+}
+

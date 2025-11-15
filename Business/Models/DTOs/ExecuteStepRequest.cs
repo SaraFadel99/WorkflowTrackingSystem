@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
+using WorkflowTrackingSystem.Business.Models.Enums;
 
 namespace WorkflowTrackingSystem.Business.Models.DTOs
 {
@@ -19,10 +20,9 @@ namespace WorkflowTrackingSystem.Business.Models.DTOs
         [JsonPropertyName("performed_by")]
         public string PerformedBy { get; set; }
 
-        [Required(ErrorMessage = "Action is required.")]
-        [StringLength(50, ErrorMessage = "Action cannot exceed 50 characters.")]
+        [Required(ErrorMessage = "Action is required. Valid values: approve, reject")]
         [JsonPropertyName("action")]
-        public string Action { get; set; } // e.g., "approve", "reject", "input"
+        public StepAction Action { get; set; }
     }
 }
 

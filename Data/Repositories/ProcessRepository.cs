@@ -39,7 +39,7 @@ namespace WorkflowTrackingSystem.Data.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task<IEnumerable<Process>> GetProcessesAsync(int? workflowId = null, string? status = null, string? assignedTo = null)
+        public async Task<IEnumerable<Process>> GetProcessesAsync(int? workflowId = null, string status = null, string assignedTo = null)
         {
             var query = _context.Processes.AsQueryable();
 
@@ -52,14 +52,17 @@ namespace WorkflowTrackingSystem.Data.Repositories
             // Filter by status
             if (!string.IsNullOrEmpty(status))
             {
-                // Map status values: "Active" -> "InProgress", "Completed" -> "Completed", "Pending" -> "InProgress" or check actual status
+                // Map enum values to database values
+                // Support both enum names and legacy string values
                 string statusFilter = status.ToLower() switch
                 {
-                    "active" => "InProgress",
+                    "active" => "Active",
                     "completed" => "Completed",
-                    "pending" => "InProgress",
-                    "rejected" => "Rejected",
-                    _ => status // Use the provided status as-is if it doesn't match standard values
+                    "pending" => "Pending",
+                    // Legacy support for old values
+                    "inprogress" => "Active",
+                    "rejected" => "Completed", // Map rejected to completed
+                    _ => status // Use the provided status as-is if it doesn't match
                 };
                 query = query.Where(p => p.Status == statusFilter);
             }
