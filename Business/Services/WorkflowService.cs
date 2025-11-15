@@ -27,7 +27,7 @@ namespace WorkflowTrackingSystem.Business.Services
             }
 
             // Map DTO to Entity
-            var workflow = new Workflow
+            Workflow workflow = new Workflow
             {
                 Name = request.Name,
                 Description = request.Description,
@@ -42,22 +42,59 @@ namespace WorkflowTrackingSystem.Business.Services
             };
 
             // Save to database
-            var createdWorkflow = await _workflowRepository.CreateAsync(workflow);
+            Workflow createdWorkflow = await _workflowRepository.CreateAsync(workflow);
 
             // Map Entity to Response DTO
             return MapToResponse(createdWorkflow);
         }
 
-        public async Task<WorkflowResponse?> GetWorkflowByIdAsync(int id)
-        {
-            var workflow = await _workflowRepository.GetByIdAsync(id);
-            return workflow != null ? MapToResponse(workflow) : null;
-        }
+        //public async Task<WorkflowResponse> GetWorkflowByIdAsync(int id)
+        //{
+        //    var workflow = await _workflowRepository.GetByIdAsync(id);
+        //    return workflow != null ? MapToResponse(workflow) : null;
+        //}
 
         public async Task<IEnumerable<WorkflowResponse>> GetAllWorkflowsAsync()
         {
             var workflows = await _workflowRepository.GetAllAsync();
+      
             return workflows.Select(MapToResponse);
+        }
+
+        public async Task<WorkflowResponse> UpdateWorkflowAsync(int id, CreateWorkflowRequest request)
+        {
+            // Validate request
+            if (string.IsNullOrWhiteSpace(request.Name))
+            {
+                throw new ArgumentException("Workflow name is required.", nameof(request));
+            }
+
+            if (request.Steps == null || !request.Steps.Any())
+            {
+                throw new ArgumentException("Workflow must have at least one step.", nameof(request));
+            }
+
+            // Map DTO to Entity
+            Workflow workflow = new Workflow
+            {
+                Id = id,
+                Name = request.Name,
+                Description = request.Description,
+              //  CreatedDate = existingWorkflow.CreatedDate, 
+                Steps = request.Steps.Select(stepDto => new WorkflowStep
+                {
+                    StepName = stepDto.StepName,
+                    AssignedTo = stepDto.AssignedTo,
+                    ActionType = stepDto.ActionType,
+                    NextStep = stepDto.NextStep
+                }).ToList()
+            };
+
+            // Update in database
+            Workflow updatedWorkflow = await _workflowRepository.UpdateAsync(workflow);
+
+            // Map Entity to Response DTO
+            return MapToResponse(updatedWorkflow);
         }
 
         private static WorkflowResponse MapToResponse(Workflow workflow)

@@ -7,6 +7,7 @@ namespace WorkflowTrackingSystem.Data.Repositories
         Task<Workflow> CreateAsync(Workflow workflow);
         Task<Workflow?> GetByIdAsync(int id);
         Task<IEnumerable<Workflow>> GetAllAsync();
+        Task<Workflow> UpdateAsync(Workflow workflow);
     }
 }
 

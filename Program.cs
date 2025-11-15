@@ -7,7 +7,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Configure JSON serialization options
+        options.JsonSerializerOptions.WriteIndented = true;
+        // Property names will be explicitly mapped using JsonPropertyName attributes
+    });
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -27,9 +33,11 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 // Register Repositories
 builder.Services.AddScoped<IWorkflowRepository, WorkflowRepository>();
+builder.Services.AddScoped<IProcessRepository, ProcessRepository>();
 
 // Register Services
 builder.Services.AddScoped<IWorkflowService, WorkflowService>();
+builder.Services.AddScoped<IProcessService, ProcessService>();
 
 var app = builder.Build();
 

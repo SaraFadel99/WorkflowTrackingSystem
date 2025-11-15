@@ -26,10 +26,8 @@ namespace WorkflowTrackingSystem.Controllers
             try
             {
                 var workflow = await _workflowService.CreateWorkflowAsync(request);
-                return CreatedAtAction(
-                    nameof(GetWorkflowById),
-                    new { id = workflow.Id },
-                    workflow);
+                return Ok(workflow);
+          
             }
             catch (ArgumentException ex)
             {
@@ -41,18 +39,41 @@ namespace WorkflowTrackingSystem.Controllers
             }
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<WorkflowResponse>> GetWorkflowById(int id)
+        [HttpPut("{id}")]
+        public async Task<ActionResult<WorkflowResponse>> UpdateWorkflow(int id, [FromBody] CreateWorkflowRequest request)
         {
-            var workflow = await _workflowService.GetWorkflowByIdAsync(id);
-            
-            if (workflow == null)
+            if (!ModelState.IsValid)
             {
-                return NotFound(new { message = $"Workflow with id {id} not found." });
+                return BadRequest(ModelState);
             }
 
-            return Ok(workflow);
+            try
+            {
+                WorkflowResponse workflow = await _workflowService.UpdateWorkflowAsync(id, request);
+                return Ok(workflow);
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while updating the workflow.", error = ex.Message });
+            }
         }
+
+        //[HttpGet("{id}")]
+        //public async Task<ActionResult<WorkflowResponse>> GetWorkflowById(int id)
+        //{
+        //    var workflow = await _workflowService.GetWorkflowByIdAsync(id);
+            
+        //    if (workflow == null)
+        //    {
+        //        return NotFound(new { message = $"Workflow with id {id} not found." });
+        //    }
+
+        //    return Ok(workflow);
+        //}
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<WorkflowResponse>>> GetAllWorkflows()
