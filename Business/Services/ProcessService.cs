@@ -9,11 +9,15 @@ namespace WorkflowTrackingSystem.Business.Services
     {
         private readonly IProcessRepository _processRepository;
         private readonly IWorkflowRepository _workflowRepository;
+        private readonly IValidationService _validationService;
 
-        public ProcessService(IProcessRepository processRepository, IWorkflowRepository workflowRepository)
+        public ProcessService(IProcessRepository processRepository, 
+                              IWorkflowRepository workflowRepository,
+                              IValidationService validationService)
         {
             _processRepository = processRepository;
             _workflowRepository = workflowRepository;
+            _validationService = validationService;
         }
 
         public async Task<StartProcessResponse> StartProcessAsync(StartProcessRequest request)
@@ -43,7 +47,7 @@ namespace WorkflowTrackingSystem.Business.Services
             {
                 WorkflowId = request.WorkflowId,
                 Initiator = request.Initiator,
-                Status = ProcessStatusToString(ProcessStatus.Active), // Start as Active
+                Status = ProcessStatusToString(ProcessStatus.Active), 
                 CurrentStep = firstStep.StepName,
                 NextStep = firstStep.NextStep,
                 CreatedDate = DateTime.UtcNow,
@@ -97,8 +101,7 @@ namespace WorkflowTrackingSystem.Business.Services
             }
 
             // Validate action type - enum ensures only valid values
-            if (workflowStep.ActionType == "approve_reject" && 
-                request.Action != StepAction.approve && request.Action != StepAction.reject)
+            if (workflowStep.ActionType == "approve_reject" && request.Action != StepAction.approve && request.Action != StepAction.reject)
             {
                 throw new ArgumentException(
                     $"Action '{request.Action}' is not valid for step '{request.StepName}'. Expected 'approve' or 'reject'.");
@@ -114,6 +117,25 @@ namespace WorkflowTrackingSystem.Business.Services
                 Status = "Completed",
                 ExecutedDate = DateTime.UtcNow
             };
+
+            ValidationResult ValidateStep = null;
+            ///externalvalidation if required
+            if (workflowStep.RequireValidation)
+            {
+                ValidateStep = await _validationService.ValidateStepAsync(request, workflowStep.ValidationAPIURL);
+                if (!ValidateStep.IsValid)
+                {
+                    stepExecution.ValidationPassed = false;
+                    stepExecution.ValidationMessage = ValidateStep.Message;
+                    stepExecution.Status = "External Validation Failed";
+                }
+                else 
+                {
+                    stepExecution.ValidationPassed = true;
+                }
+            }
+
+         
 
             await _processRepository.AddStepExecutionAsync(stepExecution);
 
@@ -245,21 +267,9 @@ namespace WorkflowTrackingSystem.Business.Services
 
         private static string StepActionToString(StepAction action)
         {
-            return action.ToString().ToLower(); // "approve" or "reject"
+            return action.ToString().ToLower(); 
         }
 
-        private static StepAction StringToStepAction(string action)
-        {
-            if (string.IsNullOrEmpty(action))
-                throw new ArgumentException("Action cannot be null or empty.");
-
-            return action.ToLower() switch
-            {
-                "approve" => StepAction.approve,
-                "reject" => StepAction.reject,
-                _ => throw new ArgumentException($"Invalid action value: {action}. Valid values are: approve, reject")
-            };
-        }
     }
 }
 

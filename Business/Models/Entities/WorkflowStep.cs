@@ -7,8 +7,8 @@
         public string AssignedTo { get; set; }
         public string ActionType { get; set; }
         public string NextStep { get; set; }
-        //forignKey
         public int WorkflowId { get; set; }
-       // public Workflow Workflow { get; set; }
+        public bool RequireValidation { get; set; }
+        public string ValidationAPIURL { get; set; }
     }
 }

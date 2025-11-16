@@ -37,6 +37,8 @@ builder.Services.AddScoped<IProcessRepository, ProcessRepository>();
 
 // Register Services
 builder.Services.AddScoped<IWorkflowService, WorkflowService>();
+//builder.Services.AddHttpClient();
+builder.Services.AddScoped<IValidationService, ValidationService>();
 builder.Services.AddScoped<IProcessService, ProcessService>();
 
 var app = builder.Build();

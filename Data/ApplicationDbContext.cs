@@ -36,6 +36,8 @@ namespace WorkflowTrackingSystem.Data
                 entity.Property(e => e.AssignedTo).IsRequired().HasMaxLength(100);
                 entity.Property(e => e.ActionType).IsRequired().HasMaxLength(50);
                 entity.Property(e => e.NextStep).HasMaxLength(50);
+                entity.Property(e => e.RequireValidation);
+                entity.Property(e => e.ValidationAPIURL).HasMaxLength(50);
 
                 entity.HasOne<Workflow>()
                     .WithMany(w => w.Steps)

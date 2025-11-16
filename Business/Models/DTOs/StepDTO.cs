@@ -23,5 +23,9 @@ namespace WorkflowTrackingSystem.Business.Models.DTOs
         [StringLength(50, ErrorMessage = "Next step cannot exceed 50 characters.")]
         [JsonPropertyName("next_step")]
         public string NextStep { get; set; }
+
+        public bool RequireValidation { get; set; }
+        [StringLength(50, ErrorMessage = "Next step cannot exceed 50 characters.")]
+        public string ValidationAPIURL { get; set; }
     }
 }

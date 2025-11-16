@@ -37,7 +37,9 @@ namespace WorkflowTrackingSystem.Business.Services
                     StepName = stepDto.StepName,
                     AssignedTo = stepDto.AssignedTo,
                     ActionType = stepDto.ActionType,
-                    NextStep = stepDto.NextStep
+                    NextStep = stepDto.NextStep,
+                    RequireValidation = stepDto.RequireValidation,
+                    ValidationAPIURL = stepDto.ValidationAPIURL
                 }).ToList()
             };
 
@@ -109,7 +111,9 @@ namespace WorkflowTrackingSystem.Business.Services
                     StepName = step.StepName,
                     AssignedTo = step.AssignedTo,
                     ActionType = step.ActionType,
-                    NextStep = step.NextStep
+                    NextStep = step.NextStep,
+                    RequireValidation = step.RequireValidation,
+                    ValidationAPIURL = step.ValidationAPIURL
                 }).ToList() ?? new List<StepDTO>()
             };
         }
