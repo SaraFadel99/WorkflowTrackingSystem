@@ -62,19 +62,6 @@ namespace WorkflowTrackingSystem.Controllers
             }
         }
 
-        //[HttpGet("{id}")]
-        //public async Task<ActionResult<WorkflowResponse>> GetWorkflowById(int id)
-        //{
-        //    var workflow = await _workflowService.GetWorkflowByIdAsync(id);
-            
-        //    if (workflow == null)
-        //    {
-        //        return NotFound(new { message = $"Workflow with id {id} not found." });
-        //    }
-
-        //    return Ok(workflow);
-        //}
-
         [HttpGet]
         public async Task<ActionResult<IEnumerable<WorkflowResponse>>> GetAllWorkflows()
         {
