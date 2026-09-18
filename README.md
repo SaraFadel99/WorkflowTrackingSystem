@@ -1,0 +1,5 @@
+- I used layered archticture for its simplicity which is convienient in this case
+- the project consist of 3 layers Controller, Business and Data ( I used Inmoemory DB ) 
+- For the validation I chose to use service instead of middleware because its more suitable in this case
+- I covered most of the cases but not all 
+-for modularity I thought the project is simpler than using modules 
